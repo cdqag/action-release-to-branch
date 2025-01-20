@@ -21,7 +21,7 @@ inputs:
 
   additional-files:
     description: 'Space-separated list of additional files (may be regexp) to be copied to the major branch'
-    default: ''
+    default: 'action.ya?ml LICENSE README.md'
 
 runs:
   using: composite
