@@ -30,10 +30,6 @@ while getopts "p:s:v:m:a:e:h" opt; do
 		log_debug "-a argument is $OPTARG"
 		ADDITIONAL_FILES="$OPTARG"
 		;;
-	e)
-		log_debug "-e argument is $OPTARG"
-		EXCLUDED_NAMES="$OPTARG"
-		;;
 	h)
 		echo_err "Usage: $0 -p <root_path> -s <source_dirs> -v <next_version> -m <next_major_version> [-a <additional_files>] [-e <excluded_names>] [-h]"
 		echo_err "  -p <root_path>           The root directory of the project."
@@ -41,7 +37,6 @@ while getopts "p:s:v:m:a:e:h" opt; do
 		echo_err "  -v <next_version>        The next version of the project."
 		echo_err "  -m <next_major_version>  The next major version of the project."
 		echo_err "  -a <additional_files>    Additional files (regexp patterns) to copy to the destination directory."
-		echo_err "  -e <excluded_names>      Space-separated list of excluded names."
 		echo_err "  -h                       Display this help message, then exit."
 		exit 0
 		;;

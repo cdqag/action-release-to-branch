@@ -1,0 +1,37 @@
+name: 'release-src-to-major-branch'
+description: 'Action that releases the source code to the major branch'
+author: 'Marek Sierociński <marek.sierocinski@cdq.com>'
+
+branding:
+  icon: 'git-branch'
+  color: 'green'
+
+inputs:
+  src-dirs:
+    description: 'Space-separated list of source directories'
+    default: 'src'
+
+  next-version:
+    description: 'Next version of the application'
+    required: true
+
+  next-major-version:
+    description: 'Next major version of the application'
+    required: true
+
+  additional-files:
+    description: 'Space-separated list of additional files (may be regexp) to be copied to the major branch'
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - run: ./src/release.sh
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        ROOT_PATH: ${{ github.workspace }}
+        SOURCE_DIRS: ${{ inputs.src-dirs }}
+        NEXT_VERSION: ${{ inputs.next-version }}
+        NEXT_MAJOR_VERSION: ${{ inputs.next-major-version }}
+        ADDITIONAL_FILES: ${{ inputs.additional-files }}

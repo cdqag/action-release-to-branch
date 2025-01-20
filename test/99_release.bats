@@ -137,4 +137,8 @@ teardown() {
 	run git log --oneline
 	assert_success
 	assert_output --partial "chore: Build version v1.2.3"
+
+	assert [ -f "./src/helpers/job_helpers.sh" ]
+	assert [ -f "./src/helpers/json_helpers.sh" ]
+	assert [ -f "./src/helpers/log_helpers.sh" ]
 }
