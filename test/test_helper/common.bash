@@ -10,7 +10,11 @@ workdir=/tmp/not-yet-set
 BOT_NAME="github-actions[bot]"
 BOT_EMAIL="github-actions[bot]@users.noreply.github.com"
 
+ORIGINAL_GITHUB_ACTIONS="$GITHUB_ACTIONS"
+
 function common_setup() {
+	GITHUB_ACTIONS=""
+
 	# Simulate remote git repository
 	remotedir=$(mktemp -d)
 
@@ -40,5 +44,7 @@ function common_setup() {
 }
 
 function common_teardown() {
+	GITHUB_ACTIONS="$ORIGINAL_GITHUB_ACTIONS"
+
 	rm -rf "$remotedir" "$workdir"
 }
