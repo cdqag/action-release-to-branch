@@ -82,6 +82,11 @@ function cleanup() {
 }
 trap "cleanup" EXIT
 
+if [[ -z "$DEST_PATH" ]]; then
+	log_error "Failed to create temporary destination directory"
+	exit 15
+fi
+
 log_debug "Exporting $ROOT_PATH ..."
 cd "$ROOT_PATH"
 
@@ -93,7 +98,7 @@ done
 
 
 if [[ -n "$ADDITIONAL_FILES" ]]; then
-	log_debug "Copying additional files to $DIST_DIR ..."
+	log_debug "Copying additional files to $DEST_PATH ..."
 	for file_pattern in $ADDITIONAL_FILES; do
 		for file in $(find . -maxdepth 1 -type f -regex ".*$file_pattern"); do
 			cp "$file" "$DEST_PATH/$file"
@@ -116,12 +121,18 @@ else
 fi
 
 log_debug "Cleaning up branch ..."
-find . -maxdepth 1 -not -name '.git' -exec rm -rf {} \;
+find . -maxdepth 1 -not -name '.' -not -name '.git' -exec rm -rf {} \;
 
-log_debug "Copying files from $DIST_DIR to current directory ..."
-mv "$DIST_DIR"/* ./
+log_debug "Copying files from $DEST_PATH to current directory ..."
+mv "$DEST_PATH"/* ./
 
+log_debug "Adding all files to git ..."
+git add --all
 
-# git add --all
-# git commit --quiet -m "chore: Build version $NEXT_VERSION" || true
-# git push --force origin $NEXT_MAJOR_VERSION
+log_debug "Committing changes ..."
+git commit --quiet -m "chore: Build version $NEXT_VERSION" || true
+
+log_debug "Pushing changes to origin ..."
+git push --force origin $NEXT_MAJOR_VERSION
+
+log_info "Done"

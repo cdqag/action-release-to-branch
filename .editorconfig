@@ -60,7 +60,7 @@ ij_asciidoc_blank_lines_keep_after_header = 1
 ij_asciidoc_formatting_enabled = true
 ij_asciidoc_one_sentence_per_line = true
 
-[{*.bash,*.sh,*.zsh,*.ash}]
+[{*.bash,*.sh,*.zsh,*.ash,*.bats}]
 indent_style = tab
 ij_shell_binary_ops_start_line = false
 ij_shell_keep_column_alignment_padding = false

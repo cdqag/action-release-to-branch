@@ -49,38 +49,92 @@ teardown() {
 	run src/release.sh -p "$workdir" -s src -v "v1.2.3" -m "v1"
 
 	assert_success
-	assert [ -d "$remotedir/src" ]
-	assert [ -d "$remotedir/src/foo" ]
-	assert [ -d "$remotedir/src/foo/bar" ]
-	assert [ -d "$remotedir/src/helpers" ]
-	assert [ ! -h "$remotedir/src/helpers" ]
-	assert [ ! -d "$remotedir/src/helpers/.git" ]
+	assert [ -d "$workdir/src" ]
+	assert [ -d "$workdir/src/foo" ]
+	assert [ -d "$workdir/src/foo/bar" ]
+	assert [ -d "$workdir/src/helpers" ]
+	assert [ ! -h "$workdir/src/helpers" ]
+	assert [ ! -d "$workdir/src/helpers/.git" ]
 }
 
 @test "should copy all files to temporary destination" {
 	run src/release.sh -p "$workdir" -s src -v "v1.2.3" -m "v1"
 
 	assert_success
-	assert [ -f "$remotedir/src/foo/bar/baz.txt" ]
-	assert [ -f "$remotedir/src/helpers/job_helpers.sh" ]
-	assert [ -f "$remotedir/src/helpers/json_helpers.sh" ]
-	assert [ -f "$remotedir/src/helpers/log_helpers.sh" ]
-	assert [ -f "$remotedir/src/other-important" ]
-	assert [ -f "$remotedir/src/something" ]
+	assert [ -f "$workdir/src/foo/bar/baz.txt" ]
+	assert [ -f "$workdir/src/helpers/job_helpers.sh" ]
+	assert [ -f "$workdir/src/helpers/json_helpers.sh" ]
+	assert [ -f "$workdir/src/helpers/log_helpers.sh" ]
+	assert [ -f "$workdir/src/other-important" ]
+	assert [ -f "$workdir/src/something" ]
 }
 
 @test "should copy all files + additional files" {
 	run src/release.sh -p "$workdir" -s src -v "v1.2.3" -m "v1" -a "action.ya?ml LICENSE"
 
 	assert_success
-	assert [ -f "$remotedir/src/foo/bar/baz.txt" ]
-	assert [ -f "$remotedir/src/helpers/job_helpers.sh" ]
-	assert [ -f "$remotedir/src/helpers/json_helpers.sh" ]
-	assert [ -f "$remotedir/src/helpers/log_helpers.sh" ]
-	assert [ -f "$remotedir/src/other-important" ]
-	assert [ -f "$remotedir/src/something" ]
-	assert [ -f "$remotedir/action.yaml" ]
-	assert [ -f "$remotedir/LICENSE" ]
-	assert [ ! -f "$remotedir/not-important" ]
-	assert [ ! -f "$remotedir/README.md" ]
+	assert [ -f "$workdir/src/foo/bar/baz.txt" ]
+	assert [ -f "$workdir/src/helpers/job_helpers.sh" ]
+	assert [ -f "$workdir/src/helpers/json_helpers.sh" ]
+	assert [ -f "$workdir/src/helpers/log_helpers.sh" ]
+	assert [ -f "$workdir/src/other-important" ]
+	assert [ -f "$workdir/src/something" ]
+	assert [ -f "$workdir/action.yaml" ]
+	assert [ -f "$workdir/LICENSE" ]
+	assert [ ! -f "$workdir/not-important" ]
+	assert [ ! -f "$workdir/README.md" ]
+}
+
+@test "should be on proper branch" {
+	run src/release.sh -p "$workdir" -s src -v "v1.2.3" -m "v1"
+	assert_success
+
+	cd "$workdir"
+
+	run git branch --show-current
+	assert_success
+	assert_output "v1"
+}
+
+@test "should create proper commit" {
+	run src/release.sh -p "$workdir" -s src -v "v1.2.3" -m "v1"
+	assert_success
+
+	cd "$workdir"
+
+	run git log --oneline
+	assert_success
+	assert_output --partial "chore: Build version v1.2.3"
+}
+
+@test "there should be no uncommited files" {
+	run src/release.sh -p "$workdir" -s src -v "v1.2.3" -m "v1"
+	assert_success
+
+	cd "$workdir"
+
+	run git status --porcelain
+	assert_success
+	assert_output ""
+}
+
+@test "changes should be pushed to the remote" {
+	run src/release.sh -p "$workdir" -s src -v "v1.2.3" -m "v1"
+	assert_success
+
+	cd "$remotedir"
+
+	run git show-ref --verify --quiet "refs/heads/v1"
+	assert_success
+
+	run git checkout v1
+	assert_success
+
+	run git status --porcelain
+	assert_success
+	assert_output ""
+
+	run git log --oneline
+	assert_success
+	assert_output --partial "chore: Build version v1.2.3"
 }
