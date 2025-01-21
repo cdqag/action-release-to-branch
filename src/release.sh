@@ -89,8 +89,8 @@ for source_dir in $SOURCE_DIRS; do
 	log_debug "Processing $source_dir ..."
 
 	rsync -rLptgoD --exclude=".git" "$source_dir" "$DEST_PATH"
+	find "$DEST_PATH" -name ".git"
 done
-
 
 if [[ -n "$ADDITIONAL_FILES" ]]; then
 	log_debug "Copying additional files to $DEST_PATH ..."
@@ -103,8 +103,7 @@ else
 	log_debug "No additional files to copy - skipping."
 fi
 
-log_debug "Deinitializing submodules ..."
-git submodule deinit --all --force
+echo "DEST_PATH=$DEST_PATH"
 
 log_debug "git fetch origin ..."
 git fetch origin
@@ -115,7 +114,13 @@ if git show-ref --verify --quiet refs/heads/$NEXT_MAJOR_VERSION; then
 	git checkout $NEXT_MAJOR_VERSION --force
 else
 	log_debug "Branch $NEXT_MAJOR_VERSION does not exist - creating it ..."
-	git checkout -b $NEXT_MAJOR_VERSION --force
+	git checkout --orphan $NEXT_MAJOR_VERSION --force
+
+	log_debug "Removing all files from branch ..."
+	git rm -rf '*' --quiet
+
+	log_debug "Deinitializing submodules ..."
+	git submodule deinit --all --force || true
 fi
 
 log_debug "Cleaning up branch ..."
