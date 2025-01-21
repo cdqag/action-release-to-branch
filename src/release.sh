@@ -103,16 +103,19 @@ else
 	log_debug "No additional files to copy - skipping."
 fi
 
+log_debug "Deinitializing submodules ..."
+git submodule deinit --all --force
+
 log_debug "git fetch origin ..."
 git fetch origin
 
 log_debug "Checking out if major version branch already exists ..."
 if git show-ref --verify --quiet refs/heads/$NEXT_MAJOR_VERSION; then
 	log_debug "Branch $NEXT_MAJOR_VERSION already exists - checking it out ..."
-	git checkout $NEXT_MAJOR_VERSION
+	git checkout $NEXT_MAJOR_VERSION --force
 else
 	log_debug "Branch $NEXT_MAJOR_VERSION does not exist - creating it ..."
-	git checkout -b $NEXT_MAJOR_VERSION
+	git checkout -b $NEXT_MAJOR_VERSION --force
 fi
 
 log_debug "Cleaning up branch ..."
