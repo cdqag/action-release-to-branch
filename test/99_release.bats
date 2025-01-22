@@ -35,18 +35,11 @@ teardown() {
 	run src/release.sh -p "$workdir" -s src
 
 	assert_failure 13
-	assert_output "[ERROR] Invalid input: next_version is not set"
-}
-
-@test "should exit error when next_major_version is empty" {
-	run src/release.sh -p "$workdir" -s src -v "v1.2.3"
-
-	assert_failure 14
 	assert_output "[ERROR] Invalid input: next_major_version is not set"
 }
 
 @test "should create folder structure properly (should not be symbolic links)" {
-	run src/release.sh -p "$workdir" -s src -v "v1.2.3" -m "v1"
+	run src/release.sh -p "$workdir" -s src -v "v1"
 
 	assert_success
 	assert [ -d "$workdir/src" ]
@@ -58,7 +51,7 @@ teardown() {
 }
 
 @test "should copy all files to temporary destination" {
-	run src/release.sh -p "$workdir" -s src -v "v1.2.3" -m "v1"
+	run src/release.sh -p "$workdir" -s src -v "v1"
 
 	assert_success
 	assert [ -f "$workdir/src/foo/bar/baz.txt" ]
@@ -70,7 +63,7 @@ teardown() {
 }
 
 @test "should copy all files + additional files" {
-	run src/release.sh -p "$workdir" -s src -v "v1.2.3" -m "v1" -a "action.ya?ml LICENSE"
+	run src/release.sh -p "$workdir" -s src -v "v1" -a "action.ya?ml LICENSE"
 
 	assert_success
 	assert [ -f "$workdir/src/foo/bar/baz.txt" ]
@@ -86,7 +79,7 @@ teardown() {
 }
 
 @test "should be on proper branch" {
-	run src/release.sh -p "$workdir" -s src -v "v1.2.3" -m "v1"
+	run src/release.sh -p "$workdir" -s src -v "v1"
 	assert_success
 
 	cd "$workdir"
@@ -97,18 +90,18 @@ teardown() {
 }
 
 @test "should create proper commit" {
-	run src/release.sh -p "$workdir" -s src -v "v1.2.3" -m "v1"
+	run src/release.sh -p "$workdir" -s src -v "v1"
 	assert_success
 
 	cd "$workdir"
 
 	run git log --oneline
 	assert_success
-	assert_output --partial "chore: Build version v1.2.3"
+	assert_output --partial "other: Update build"
 }
 
 @test "there should be no uncommited files" {
-	run src/release.sh -p "$workdir" -s src -v "v1.2.3" -m "v1"
+	run src/release.sh -p "$workdir" -s src -v "v1"
 	assert_success
 
 	cd "$workdir"
@@ -119,7 +112,7 @@ teardown() {
 }
 
 @test "changes should be pushed to the remote" {
-	run src/release.sh -p "$workdir" -s src -v "v1.2.3" -m "v1"
+	run src/release.sh -p "$workdir" -s src -v "v1"
 	assert_success
 
 	cd "$remotedir"
@@ -136,7 +129,7 @@ teardown() {
 
 	run git log --oneline
 	assert_success
-	assert_output --partial "chore: Build version v1.2.3"
+	assert_output --partial "other: Update build"
 
 	assert [ -f "./src/helpers/job_helpers.sh" ]
 	assert [ -f "./src/helpers/json_helpers.sh" ]

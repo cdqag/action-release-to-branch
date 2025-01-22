@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"
 
 source "$SCRIPT_DIR/helpers/log_helpers.sh"
 
-while getopts "p:s:v:m:a:e:h" opt; do
+while getopts "p:s:v:a:e:h" opt; do
 	case "${opt}" in
 	p)
 		log_debug "-p argument is $OPTARG"
@@ -20,10 +20,6 @@ while getopts "p:s:v:m:a:e:h" opt; do
 		;;
 	v)
 		log_debug "-v argument is $OPTARG"
-		NEXT_VERSION="$OPTARG"
-		;;
-	m)
-		log_debug "-m argument is $OPTARG"
 		NEXT_MAJOR_VERSION="$OPTARG"
 		;;
 	a)
@@ -31,11 +27,10 @@ while getopts "p:s:v:m:a:e:h" opt; do
 		ADDITIONAL_FILES="$OPTARG"
 		;;
 	h)
-		echo_err "Usage: $0 -p <root_path> -s <source_dirs> -v <next_version> -m <next_major_version> [-a <additional_files>] [-e <excluded_names>] [-h]"
+		echo_err "Usage: $0 -p <root_path> -s <source_dirs> -v <next_version> -v <next_major_version> [-a <additional_files>] [-e <excluded_names>] [-h]"
 		echo_err "  -p <root_path>           The root directory of the project."
 		echo_err "  -s <source_dirs>         Space-separated list of source directories that should be copied."
-		echo_err "  -v <next_version>        The next version of the project."
-		echo_err "  -m <next_major_version>  The next major version of the project."
+		echo_err "  -v <next_major_version>  The next major version of the project."
 		echo_err "  -a <additional_files>    Additional files (regexp patterns) to copy to the destination directory."
 		echo_err "  -h                       Display this help message, then exit."
 		exit 0
@@ -58,14 +53,9 @@ if [[ -z "$SOURCE_DIRS" ]]; then
 	exit 12
 fi
 
-if [[ -z "$NEXT_VERSION" ]]; then
-	log_error "Invalid input" "next_version is not set"
-	exit 13
-fi
-
 if [[ -z "$NEXT_MAJOR_VERSION" ]]; then
 	log_error "Invalid input" "next_major_version is not set"
-	exit 14
+	exit 13
 fi
 
 log_debug "Creating temporary destination directory ..."
@@ -79,11 +69,14 @@ trap "cleanup" EXIT
 
 if [[ -z "$DEST_PATH" ]]; then
 	log_error "Failed to create temporary destination directory"
-	exit 15
+	exit 14
 fi
 
 log_debug "Exporting $ROOT_PATH ..."
 cd "$ROOT_PATH"
+
+log_debug "Ensuring submodules are initialized ..."
+git submodule update --init --recursive --quiet || true
 
 for source_dir in $SOURCE_DIRS; do
 	log_debug "Processing $source_dir ..."
@@ -103,39 +96,37 @@ else
 	log_debug "No additional files to copy - skipping."
 fi
 
-echo "DEST_PATH=$DEST_PATH"
-
 log_debug "git fetch origin ..."
 git fetch origin
 
 log_debug "Checking out if major version branch already exists ..."
-if git show-ref --verify --quiet refs/heads/$NEXT_MAJOR_VERSION; then
+if git ls-remote --heads origin $NEXT_MAJOR_VERSION | grep -q "refs/heads/$NEXT_MAJOR_VERSION"; then
 	log_debug "Branch $NEXT_MAJOR_VERSION already exists - checking it out ..."
-	git checkout $NEXT_MAJOR_VERSION --force
+	git checkout -b $NEXT_MAJOR_VERSION origin/$NEXT_MAJOR_VERSION --force
 else
 	log_debug "Branch $NEXT_MAJOR_VERSION does not exist - creating it ..."
-	git checkout --orphan $NEXT_MAJOR_VERSION --force
-
-	log_debug "Removing all files from branch ..."
-	git rm -rf '*' --quiet
-
-	log_debug "Deinitializing submodules ..."
-	git submodule deinit --all --force || true
+	git checkout -b $NEXT_MAJOR_VERSION --force
 fi
+
+log_debug "Pulling changes from origin ..."
+git pull origin master --rebase --quiet || true
+
+log_debug "Deinitializing submodules ..."
+git submodule deinit --all --force --quiet || true
 
 log_debug "Cleaning up branch ..."
 find . -maxdepth 1 -not -name '.' -not -name '.git' -exec rm -rf {} \;
+git add --all
+git commit --quiet -m "other: Cleaning" || true
 
 log_debug "Copying files from $DEST_PATH to current directory ..."
 mv "$DEST_PATH"/* ./
 
-log_debug "Adding all files to git ..."
-git add --all
-
 log_debug "Committing changes ..."
-git commit --quiet -m "chore: Build version $NEXT_VERSION" || true
+git add --all
+git commit --quiet --amend -m "other: Update build" --no-edit || true
 
 log_debug "Pushing changes to origin ..."
-git push --force origin $NEXT_MAJOR_VERSION
+git push --force origin $NEXT_MAJOR_VERSION --quiet
 
 log_info "Done"
