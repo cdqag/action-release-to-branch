@@ -1,6 +1,6 @@
 name: 'release-src-to-major-branch'
 description: 'Action that releases the source code to the major branch'
-author: 'Marek Sierociński <marek.sierocinski@cdq.com>'
+author: CDQ AG
 
 branding:
   icon: 'git-branch'

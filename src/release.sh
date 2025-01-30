@@ -108,23 +108,26 @@ else
 	git checkout -b $NEXT_MAJOR_VERSION --force
 fi
 
-log_debug "Pulling changes from origin ..."
-git pull origin master --rebase --quiet || true
-
 log_debug "Deinitializing submodules ..."
 git submodule deinit --all --force --quiet || true
 
 log_debug "Cleaning up branch ..."
 find . -maxdepth 1 -not -name '.' -not -name '.git' -exec rm -rf {} \;
 git add --all
-git commit --quiet -m "other: Cleaning" || true
+
+if [[ -z $(git status --porcelain) ]]; then
+	log_debug "No changes to commit - skipping."
+else
+	git commit --quiet -m "other: Removing non-release files" || true
+fi
 
 log_debug "Copying files from $DEST_PATH to current directory ..."
 mv "$DEST_PATH"/* ./
 
 log_debug "Committing changes ..."
 git add --all
-git commit --quiet --amend -m "other: Update build" --no-edit || true
+timestamp=$(date '+%Y%m%d/%H%m%S')
+git commit --quiet -m "other: Deploy changes $timestamp" --no-edit || true
 
 log_debug "Pushing changes to origin ..."
 git push --force origin $NEXT_MAJOR_VERSION --quiet
