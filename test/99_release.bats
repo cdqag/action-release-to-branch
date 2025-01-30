@@ -10,7 +10,7 @@ teardown() {
 	common_teardown
 }
 
-@test "should exit error when root_path is empty" {
+@test "should exit error when root_path is not set" {
 	run src/release.sh
 
 	assert_failure 10
@@ -24,22 +24,22 @@ teardown() {
 	assert_output "[ERROR] Invalid input: root_path is not a directory"
 }
 
-@test "should exit error when source_dirs is empty" {
+@test "should exit error when branch is not set" {
 	run src/release.sh -p "$workdir"
 
 	assert_failure 12
-	assert_output "[ERROR] Invalid input: source_dirs is not set"
+	assert_output "[ERROR] Invalid input: branch is not set"
 }
 
-@test "should exit error when next_version is empty" {
-	run src/release.sh -p "$workdir" -s src
+@test "should exit error when either dirs or files are not set" {
+	run src/release.sh -p "$workdir" -b v1
 
 	assert_failure 13
-	assert_output "[ERROR] Invalid input: next_major_version is not set"
+	assert_output "[ERROR] Invalid input: Either 'dirs', 'files' or both must be set"
 }
 
 @test "should create folder structure properly (should not be symbolic links)" {
-	run src/release.sh -p "$workdir" -s src -v "v1"
+	run src/release.sh -p "$workdir" -b v1 -d src
 
 	assert_success
 	assert [ -d "$workdir/src" ]
@@ -51,7 +51,7 @@ teardown() {
 }
 
 @test "should copy all files to temporary destination" {
-	run src/release.sh -p "$workdir" -s src -v "v1"
+	run src/release.sh -p "$workdir" -b v1 -d src
 
 	assert_success
 	assert [ -f "$workdir/src/foo/bar/baz.txt" ]
@@ -62,8 +62,8 @@ teardown() {
 	assert [ -f "$workdir/src/something" ]
 }
 
-@test "should copy all files + additional files" {
-	run src/release.sh -p "$workdir" -s src -v "v1" -a "action.ya?ml LICENSE"
+@test "should copy all files (from dirs and files) to temporary destination" {
+	run src/release.sh -p "$workdir" -b v1 -d src -f "action.ya?ml LICENSE"
 
 	assert_success
 	assert [ -f "$workdir/src/foo/bar/baz.txt" ]
@@ -78,8 +78,24 @@ teardown() {
 	assert [ ! -f "$workdir/README.md" ]
 }
 
+@test "should exclude all helpers" {
+	run src/release.sh -p "$workdir" -b v1 -d src -f "action.ya?ml LICENSE" -x helpers
+
+	assert_success
+	assert [ -f "$workdir/src/foo/bar/baz.txt" ]
+	assert [ ! -f "$workdir/src/helpers/job_helpers.sh" ]
+	assert [ ! -f "$workdir/src/helpers/json_helpers.sh" ]
+	assert [ ! -f "$workdir/src/helpers/log_helpers.sh" ]
+	assert [ -f "$workdir/src/other-important" ]
+	assert [ -f "$workdir/src/something" ]
+	assert [ -f "$workdir/action.yaml" ]
+	assert [ -f "$workdir/LICENSE" ]
+	assert [ ! -f "$workdir/not-important" ]
+	assert [ ! -f "$workdir/README.md" ]
+}
+
 @test "should be on proper branch" {
-	run src/release.sh -p "$workdir" -s src -v "v1"
+	run src/release.sh -p "$workdir" -b v1 -d src
 	assert_success
 
 	cd "$workdir"
@@ -90,7 +106,7 @@ teardown() {
 }
 
 @test "should create proper commit" {
-	run src/release.sh -p "$workdir" -s src -v "v1"
+	run src/release.sh -p "$workdir" -b v1 -d src
 	assert_success
 
 	cd "$workdir"
@@ -101,7 +117,7 @@ teardown() {
 }
 
 @test "there should be no uncommited files" {
-	run src/release.sh -p "$workdir" -s src -v "v1"
+	run src/release.sh -p "$workdir" -b v1 -d src
 	assert_success
 
 	cd "$workdir"
@@ -112,7 +128,7 @@ teardown() {
 }
 
 @test "changes should be pushed to the remote" {
-	run src/release.sh -p "$workdir" -s src -v "v1"
+	run src/release.sh -p "$workdir" -b v1 -d src
 	assert_success
 
 	cd "$remotedir"

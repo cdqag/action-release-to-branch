@@ -1,5 +1,5 @@
-name: 'release-src-to-major-branch'
-description: 'Action that releases the source code to the major branch'
+name: 'release-to-branch'
+description: 'Action that releases files and directories to a branch'
 author: CDQ AG
 
 branding:
@@ -7,21 +7,21 @@ branding:
   color: 'green'
 
 inputs:
-  src-dirs:
-    description: 'Space-separated list of source directories'
+  branch:
+    description: 'Destination branch'
+    required: true
+
+  dirs:
+    description: 'Space-separated list of directories to release'
     default: 'src'
 
-  next-version:
-    description: 'Next version of the application'
-    required: true
-
-  next-major-version:
-    description: 'Next major version of the application'
-    required: true
-
-  additional-files:
-    description: 'Space-separated list of additional files (may be regexp) to be copied to the major branch'
+  files:
+    description: 'Space-separated list of files (may be regexp) to be copied'
     default: 'action.ya?ml LICENSE README.md'
+
+  exclude:
+    description: 'Space-separated list of names to exclude (note: .git is always excluded)'
+    default: ''
 
 runs:
   using: composite
@@ -31,7 +31,7 @@ runs:
       working-directory: ${{ github.action_path }}
       env:
         ROOT_PATH: ${{ github.workspace }}
-        SOURCE_DIRS: ${{ inputs.src-dirs }}
-        NEXT_VERSION: ${{ inputs.next-version }}
-        NEXT_MAJOR_VERSION: ${{ inputs.next-major-version }}
-        ADDITIONAL_FILES: ${{ inputs.additional-files }}
+        BRANCH: ${{ inputs.branch }}
+        DIRS: ${{ inputs.dirs }}
+        FILES: ${{ inputs.files }}
+        EXCLUDE: ${{ inputs.exclude }}
