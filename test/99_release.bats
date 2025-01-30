@@ -97,7 +97,7 @@ teardown() {
 
 	run git log --oneline
 	assert_success
-	assert_output --partial "other: Update build"
+	assert_output --partial "other: Deploy changes"
 }
 
 @test "there should be no uncommited files" {
@@ -129,7 +129,7 @@ teardown() {
 
 	run git log --oneline
 	assert_success
-	assert_output --partial "other: Update build"
+	assert_output --partial "other: Deploy changes"
 
 	assert [ -f "./src/helpers/job_helpers.sh" ]
 	assert [ -f "./src/helpers/json_helpers.sh" ]
