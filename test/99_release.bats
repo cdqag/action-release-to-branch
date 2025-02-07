@@ -78,6 +78,15 @@ teardown() {
 	assert [ ! -f "$workdir/README.md" ]
 }
 
+@test "should onli files even in subdirectories" {
+	run src/release.sh -p "$workdir" -b v1 -f "src/helpers/.*"
+
+	assert_success
+	assert [ -f "$workdir/job_helpers.sh" ]
+	assert [ -f "$workdir/json_helpers.sh" ]
+	assert [ -f "$workdir/log_helpers.sh" ]
+}
+
 @test "should exclude all helpers" {
 	run src/release.sh -p "$workdir" -b v1 -d src -f "action.ya?ml LICENSE" -x helpers
 

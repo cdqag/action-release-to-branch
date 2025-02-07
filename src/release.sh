@@ -106,15 +106,16 @@ fi
 if [[ -n "$FILES" ]]; then
 	log_debug "Copying files to $DEST_PATH ..."
 	for file_pattern in $FILES; do
-		for file in $(find . -maxdepth 1 -type f -regex ".*$file_pattern"); do
+		for file in $(find . -type f -regex ".*$file_pattern\$"); do
+			_file=$(basename "$file")
 			for _x in $EXCLUDE; do
-				if [[ "$file" == *$_x ]]; then
-					log_debug "Excluding $file ..."
+				if [[ "$_file" == *$_x ]]; then
+					log_debug "Excluding $_file ..."
 					continue 2
 				fi
 			done
 
-			cp "$file" "$DEST_PATH/$file"
+			cp "$file" "$DEST_PATH/$_file"
 		done
 	done
 else
