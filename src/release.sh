@@ -160,6 +160,6 @@ timestamp=$(date '+%Y%m%d/%H%m%S')
 git commit --quiet -m "other: Deploy changes $timestamp" --no-edit || true
 
 log_debug "Pushing changes to origin ..."
-git push --force origin $BRANCH --quiet
+git push --force origin refs/heads/$BRANCH --quiet
 
 log_info "Done"
