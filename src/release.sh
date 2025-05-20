@@ -127,7 +127,11 @@ git fetch origin
 
 log_debug "Checking out if major version branch already exists ..."
 if git ls-remote --heads origin $BRANCH | grep -q "refs/heads/$BRANCH"; then
-	log_debug "Branch $BRANCH already exists - checking it out ..."
+	log_debug "Branch $BRANCH already exists on origin - checking it out locally ..."
+	if git branch --list | grep -q "$BRANCH"; then
+		log_debug "Branch $BRANCH already exists locally - deleting it before checking it out..."
+		git branch -D $BRANCH
+	fi
 	git checkout -b $BRANCH origin/$BRANCH --force
 else
 	log_debug "Branch $BRANCH does not exist - creating it ..."
