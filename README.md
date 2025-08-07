@@ -6,10 +6,10 @@ This action has been created to automate the process of releasing (copying) sele
 
 ```yaml
 - name: Release to major version branch
-  uses: cdqag/release-to-branch@v1
+  uses: cdqag/action-release-to-branch@v1
   with:
     branch: my-branch
-    dirs: "dist" 
+    dirs: "dist"
 ```
 
 ## Inputs
@@ -52,11 +52,11 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Normalize version
         id: version
-        uses: cdqag/normalize-version@v1
+        uses: cdqag/action-normalize-version@v1
         with:
           version: ${{ inputs.version }}
 
@@ -67,10 +67,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-  
+
       - name: Install dependencies
         run: npm ci
-  
+
       - name: Build
         run: npm run build
 
@@ -81,7 +81,7 @@ jobs:
           email: github-actions[bot]@users.noreply.github.com
 
       - name: Release dist to major version branch
-        uses: cdqag/release-to-branch@v1
+        uses: cdqag/action-release-to-branch@v1
         with:
           branch: ${{ steps.version.outputs.major }}
           dirs: dist
