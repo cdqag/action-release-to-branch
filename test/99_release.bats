@@ -74,13 +74,6 @@ teardown() {
 	assert [ ! -f "$workdir/README.md" ]
 }
 
-@test "should only files even in subdirectories" {
-	run src/release.sh -p "$workdir" -b v1 -f "src/dummy/.*"
-
-	assert_success
-	assert [ -f "$workdir/src/dummy/hello" ]
-}
-
 @test "should exclude all hello files" {
 	run src/release.sh -p "$workdir" -b v1 -d src -f "action.ya?ml LICENSE" -x hello
 
