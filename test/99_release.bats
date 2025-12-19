@@ -45,9 +45,9 @@ teardown() {
 	assert [ -d "$workdir/src" ]
 	assert [ -d "$workdir/src/foo" ]
 	assert [ -d "$workdir/src/foo/bar" ]
-	assert [ -d "$workdir/src/helpers" ]
-	assert [ ! -h "$workdir/src/helpers" ]
-	assert [ ! -d "$workdir/src/helpers/.git" ]
+	assert [ -d "$workdir/src/dummy" ]
+	assert [ ! -h "$workdir/src/dummy" ]
+	assert [ ! -d "$workdir/src/dummy/.git" ]
 }
 
 @test "should copy all files to temporary destination" {
@@ -55,9 +55,7 @@ teardown() {
 
 	assert_success
 	assert [ -f "$workdir/src/foo/bar/baz.txt" ]
-	assert [ -f "$workdir/src/helpers/job_helpers.sh" ]
-	assert [ -f "$workdir/src/helpers/json_helpers.sh" ]
-	assert [ -f "$workdir/src/helpers/log_helpers.sh" ]
+	assert [ -f "$workdir/src/dummy/hello" ]
 	assert [ -f "$workdir/src/other-important" ]
 	assert [ -f "$workdir/src/something" ]
 }
@@ -67,9 +65,7 @@ teardown() {
 
 	assert_success
 	assert [ -f "$workdir/src/foo/bar/baz.txt" ]
-	assert [ -f "$workdir/src/helpers/job_helpers.sh" ]
-	assert [ -f "$workdir/src/helpers/json_helpers.sh" ]
-	assert [ -f "$workdir/src/helpers/log_helpers.sh" ]
+	assert [ -f "$workdir/src/dummy/hello" ]
 	assert [ -f "$workdir/src/other-important" ]
 	assert [ -f "$workdir/src/something" ]
 	assert [ -f "$workdir/action.yaml" ]
@@ -78,23 +74,19 @@ teardown() {
 	assert [ ! -f "$workdir/README.md" ]
 }
 
-@test "should onli files even in subdirectories" {
-	run src/release.sh -p "$workdir" -b v1 -f "src/helpers/.*"
+@test "should only files even in subdirectories" {
+	run src/release.sh -p "$workdir" -b v1 -f "src/dummy/.*"
 
 	assert_success
-	assert [ -f "$workdir/job_helpers.sh" ]
-	assert [ -f "$workdir/json_helpers.sh" ]
-	assert [ -f "$workdir/log_helpers.sh" ]
+	assert [ -f "$workdir/src/dummy/hello" ]
 }
 
-@test "should exclude all helpers" {
-	run src/release.sh -p "$workdir" -b v1 -d src -f "action.ya?ml LICENSE" -x helpers
+@test "should exclude all hello files" {
+	run src/release.sh -p "$workdir" -b v1 -d src -f "action.ya?ml LICENSE" -x hello
 
 	assert_success
 	assert [ -f "$workdir/src/foo/bar/baz.txt" ]
-	assert [ ! -f "$workdir/src/helpers/job_helpers.sh" ]
-	assert [ ! -f "$workdir/src/helpers/json_helpers.sh" ]
-	assert [ ! -f "$workdir/src/helpers/log_helpers.sh" ]
+	assert [ ! -f "$workdir/src/dummy/hello" ]
 	assert [ -f "$workdir/src/other-important" ]
 	assert [ -f "$workdir/src/something" ]
 	assert [ -f "$workdir/action.yaml" ]
@@ -156,7 +148,5 @@ teardown() {
 	assert_success
 	assert_output --partial "other: Deploy changes"
 
-	assert [ -f "./src/helpers/job_helpers.sh" ]
-	assert [ -f "./src/helpers/json_helpers.sh" ]
-	assert [ -f "./src/helpers/log_helpers.sh" ]
+	assert [ -f "./src/dummy/hello" ]
 }
