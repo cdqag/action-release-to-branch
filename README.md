@@ -61,7 +61,7 @@ jobs:
           version: ${{ inputs.version }}
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
